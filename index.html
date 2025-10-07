@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kemanggifun — Registrasi & Leaderboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #080A1A; color: #E0E7FF; display:flex; justify-content:center; align-items:center; padding:20px; min-height:100vh; }
+    .neon-blue { color: #00E4FF; }
+    .neon-magenta { color: #FF00FF; }
+    .bg-neon-blue { background-color: #00B8D9; }
+    .cyberpunk-card { background: #0D162A; border: 1px solid #081B34; box-shadow: 0 0 30px rgba(0,228,255,0.12), 0 0 10px rgba(255,0,255,0.06); border-radius:12px; width:100%; max-width:820px; }
+    .futuristic-input { width:100%; padding:10px 15px; background-color:#081B34; border:1px solid #00566e; border-radius:6px; color:#E0E7FF; transition:all .18s }
+    .futuristic-input:focus { outline:none; border-color:#00E4FF; box-shadow:0 0 5px rgba(0,228,255,0.8) }
+    input[readonly].futuristic-input { background:transparent; border:none; border-bottom:1px dashed #00566e; padding-left:0; cursor:default; color:#a0a0a0; text-align:right; }
+    .neon-button { padding:10px 15px; border-radius:6px; font-weight:700; text-transform:uppercase; letter-spacing:1px; transition:all .22s; cursor:pointer; box-shadow:0 0 5px rgba(0,228,255,0.45); background:#00B8D9; color:#0D162A; border:none; }
+    .neon-button:hover:not(:disabled) { background:#00E4FF; box-shadow:0 0 15px rgba(0,228,255,0.8), 0 0 5px rgba(255,0,255,0.35); transform:translateY(-1px) }
+    .neon-button:disabled { background:#081B34; color:#4A5568; cursor:not-allowed; box-shadow:none }
+    .active-nav-button { background-color:#FF00FF; color:#0D162A; box-shadow:0 0 10px rgba(255,0,255,0.8) }
+    .selection\:bg-\[\#FF00FF\] ::selection { background:#FF00FF; color:#0D162A }
+    .table-scroll { max-height:420px; overflow:auto; }
+    /* small spinner */
+    .spinner { border:2px solid rgba(255,255,255,0.18); border-top-color:#FF00FF; border-radius:999px; width:18px; height:18px; animation:spin 1s linear infinite; display:inline-block; margin-right:8px; }
+    @keyframes spin { to { transform:rotate(360deg) } }
+    /* message box */
+    #message-box { position:fixed; top:18px; left:50%; transform:translateX(-50%); background:#0D162A; border-left:4px solid #00E4FF; padding:10px 14px; border-radius:6px; z-index:60; display:none; }
+  </style>
+</head>
+<body class="selection:bg-[#FF00FF] selection:text-[#0D162A]">
+
+  <div id="message-box" role="status"></div>
+
+  <div class="cyberpunk-card p-6 sm:p-8">
+    <!-- NAV -->
+    <div class="flex justify-between items-center mb-6 border-b border-[#00E4FF]/30 pb-3">
+      <div class="flex gap-2">
+        <button id="nav-form" class="neon-button text-xs py-2 px-3 active-nav-button">REGISTRASI</button>
+        <button id="nav-leaderboard" class="neon-button text-xs py-2 px-3">LEADERBOARD</button>
+      </div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-extrabold neon-blue uppercase tracking-wider">KEMANGGIFUN</h1>
+        <button id="settings-button" class="text-[#FF00FF] hover:text-[#00E4FF]" title="Pengaturan URL & PIN">
+          <!-- gear icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+            <path fill-rule="evenodd" d="M11.078 2.235a.75.75 0 0 1 .844 0 9.75 9.75 0 0 1 5.927 2.767c.78.78 1.442 1.63 1.956 2.546.125.215.158.465.083.693l-.588 1.764a.75.75 0 0 1-.94.41l-1.427-.476a6.793 6.793 0 0 0-.486.845l.443 1.087a.75.75 0 0 1-.588.941l-1.765.589c-.228.06-.477.026-.693-.083a9.75 9.75 0 0 1-2.546-1.956 9.75 9.75 0 0 1-2.546 1.956.749.749 0 0 1-.693.083l-1.765-.589a.75.75 0 0 1-.588-.94l.443-1.088a6.793 6.793 0 0 0-.486-.845l-1.427.476a.75.75 0 0 1-.94-.41l-.588-1.764a.75.75 0 0 1 .083-.693 9.75 9.75 0 0 1 1.956-2.546 9.75 9.75 0 0 1 2.767-1.956.75.75 0 0 1 .844 0Z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM12 4.5a7.5 7.5 0 0 0-7.327 6.786.75.75 0 0 0-.055.438l.442 1.088a7.5 7.5 0 0 0 7.234 5.485c.168 0 .33-.004.49-.011l.162-.006a.75.75 0 0 0 .584-.683c.12-.9.278-1.801.472-2.686a4.5 4.5 0 0 1 .403-.642l.065-.082.006-.007.002-.002A9.752 9.752 0 0 0 12 19.5a7.5 7.5 0 0 0 7.327-6.786.75.75 0 0 0 .055-.438l-.442-1.088c-.9.12-1.8.278-2.686.472a4.5 4.5 0 0 1-.642.403l-.082.065-.007.006-.002.002A9.752 9.752 0 0 0 12 4.5Z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT: Form View -->
+    <div id="form-view">
+      <form id="visitor-form" class="space-y-4">
+        <div class="flex justify-between items-center text-xs font-semibold uppercase text-gray-400">
+          <label for="event_name">Nama Acara</label>
+          <input type="text" id="event_name" name="EventName" value="TechManDay" readonly class="futuristic-input text-sm w-auto text-right" placeholder="TechManDay" />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-sm font-semibold neon-blue">1. Tipe Pengunjung <span class="text-red-500">*</span></label>
+          <select id="type_visitor" name="Type_Visitor" class="futuristic-input" required>
+            <option value="Siswa" selected>SISWA (Student)</option>
+            <option value="Umum">UMUM (General)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block mb-1 text-sm font-semibold neon-blue">2. Email <span class="text-red-500">*</span></label>
+          <input type="email" id="email_visitor" name="Email_Visitor" class="futuristic-input" placeholder="contoh@domain.com" required />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-sm font-semibold neon-blue">3. Nama Lengkap <span class="text-red-500">*</span></label>
+          <input type="text" id="name_visitor" name="Name_Visitor" class="futuristic-input" placeholder="Nama lengkap sesuai KTP/Kartu Pelajar" required />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-sm font-semibold neon-blue">4. Nomor WhatsApp <span class="text-red-500">*</span></label>
+          <input type="tel" id="wa_number" name="WA_Number" class="futuristic-input" placeholder="Contoh: 6281234567890 (tanpa +)" required pattern="^62[0-9]{9,15}$" title="Dimulai dengan 62 dan diikuti 9-15 angka." />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-sm font-semibold neon-blue">5. Instansi (Sekolah/Perusahaan) <span class="text-red-500">*</span></label>
+          <input type="text" id="instansi" name="Instansi" class="futuristic-input" placeholder="Nama sekolah/perusahaan/institusi Anda" required />
+        </div>
+
+        <div id="student-fields" class="space-y-4 border-t border-[#FF00FF]/30 pt-4 mt-4">
+          <p class="text-xs font-bold neon-magenta uppercase">— Data Khusus Siswa —</p>
+
+          <div>
+            <label class="block mb-1 text-sm font-semibold neon-blue">6. Jurusan yang Diminati <span class="text-red-500">*</span></label>
+            <select id="major_interest_select" name="Major_Interest" class="futuristic-input" required>
+              <option value="">Pilih Jurusan</option>
+              <option value="Jurusan Game">Jurusan Game</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information System">Information System</option>
+              <option value="Business">Business</option>
+              <option value="Other">Lainnya (Tulis Manual)</option>
+            </select>
+            <input type="text" id="major_interest_other" class="futuristic-input mt-2 hidden" placeholder="Tulis nama jurusan lainnya di sini" data-name="Major_Interest" />
+          </div>
+
+          <div>
+            <label class="block mb-1 text-sm font-semibold neon-blue">7. Universitas Swasta Diminati <span class="text-red-500">*</span></label>
+            <select id="private_univ_select" name="Private_Univ" class="futuristic-input" required>
+              <option value="">Pilih Univ Swasta</option>
+              <option value="BINUS University">BINUS University</option>
+              <option value="Other">Lainnya (Tulis Manual)</option>
+            </select>
+            <input type="text" id="private_univ_other" class="futuristic-input mt-2 hidden" placeholder="Tulis nama univ swasta lainnya di sini" data-name="Private_Univ" />
+          </div>
+
+          <div>
+            <label class="block mb-1 text-sm font-semibold neon-blue">8. Universitas Negeri Diminati <span class="text-red-500">*</span></label>
+            <input type="text" id="public_univ" name="Public_Univ" class="futuristic-input" placeholder="Contoh: UI, UGM, ITB" required />
+          </div>
+
+          <div>
+            <label class="block mb-1 text-sm font-semibold neon-blue">9. Nomor WhatsApp Orang Tua <span class="text-red-500">*</span></label>
+            <input type="tel" id="wa_number_parent" name="WA_Number_Parent" class="futuristic-input" placeholder="Contoh: 6281234567890 (tanpa +)" required pattern="^62[0-9]{9,15}$" title="Dimulai dengan 62 dan diikuti 9-15 angka." />
+          </div>
+        </div>
+
+        <button type="submit" id="submit-button" class="neon-button w-full mt-6 flex justify-center items-center">
+          <span id="loading-spinner" class="hidden spinner"></span>
+          <span id="submit-text">KIRIM DATA [ENTER]</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- CONTENT: Leaderboard View (hidden by default) -->
+    <div id="leaderboard-view" class="hidden">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold neon-blue uppercase">Leaderboard</h3>
+          <p class="text-xs text-white/70">Klik tombol untuk mengambil data leaderboard dari Google Sheet</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="fetch-leaderboard" class="neon-button">🔄 Ambil Data Terbaru</button>
+        </div>
+      </div>
+
+      <div class="bg-[#071025] border border-[#081B34] rounded-md p-3 table-scroll">
+        <table id="leaderboard-table" class="w-full text-sm">
+          <thead id="leaderboard-head" class="text-xs text-white/80"></thead>
+          <tbody id="leaderboard-body" class="divide-y"></tbody>
+        </table>
+      </div>
+
+      <p id="leaderboard-status" class="mt-3 text-sm text-white/70"></p>
+    </div>
+
+  </div>
+
+  <!-- Modal View-Only URL & PIN -->
+  <div id="url-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center hidden">
+    <div class="cyberpunk-card p-6 w-11/12 max-w-md">
+      <h3 class="text-xl font-bold neon-magenta mb-4 uppercase text-center">ACCESS PROTOCOL (DEV VIEW)</h3>
+
+      <form id="pin-check-form" class="space-y-4">
+        <div>
+          <label class="block mb-1 text-sm font-semibold neon-blue">Masukkan PIN Akses</label>
+          <input type="password" id="pin-input" class="futuristic-input" required placeholder="PIN: 357101">
+        </div>
+        <p id="pin-check-message" class="text-sm font-semibold hidden"></p>
+        <div class="flex space-x-3 pt-2">
+          <button type="button" id="cancel-pin-button" class="neon-button w-full bg-gray-600 hover:bg-gray-700 text-white shadow-none">BATAL</button>
+          <button type="submit" class="neon-button w-full">VERIFIKASI PIN</button>
+        </div>
+      </form>
+
+      <div id="url-view-only" class="space-y-4 hidden">
+        <h4 class="font-bold text-lg neon-blue border-b border-[#00E4FF]/30 pb-2">Informasi Target API</h4>
+        <div>
+          <p class="mb-1 text-sm font-semibold neon-blue">NAMA ACARA AKTIF:</p>
+          <p id="view-event-name" class="break-all text-sm font-mono text-white/90"></p>
+        </div>
+        <div>
+          <p class="mb-1 text-sm font-semibold neon-blue">URL ENTRI DATA (POST):</p>
+          <p id="view-post-url" class="break-all text-xs font-mono text-[#00E4FF]"></p>
+        </div>
+        <div>
+          <p class="mb-1 text-sm font-semibold neon-blue">URL LEADERBOARD (GET):</p>
+          <p id="view-get-url" class="break-all text-xs font-mono text-[#FF00FF]"></p>
+        </div>
+        <div class="pt-2">
+          <button type="button" id="close-url-view-button" class="neon-button w-full bg-gray-600 hover:bg-gray-700 text-white shadow-none">TUTUP</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JS (module required for firebase imports used optionally) -->
+  <script type="module">
+    // --- Optional Firebase imports (keberadaan config ditangani) ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Globals injected by environment (if any)
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    // --- Config keys & defaults ---
+    const APPS_SCRIPT_URL_KEY = 'kemanggifun_apps_script_url';
+    const EVENT_NAME_KEY = 'kemanggifun_event_name';
+    const ACCESS_PIN = '357101';
+    // Ganti sesuai URL kamu (GET/POST same)
+    const DEFAULT_URL = "https://script.google.com/macros/s/AKfycbxKKJ_RqQggd-WmJFuC-5cPrboeUS04xit4bGwz5RFeZ4aBCniCTIQwYCOH7SWX0s_wNw/exec";
+    const DEFAULT_EVENT_NAME = "TechManDay";
+
+    let currentAppsScriptUrl = DEFAULT_URL;
+    let currentEventName = DEFAULT_EVENT_NAME;
+
+    // Init Firebase (optional)
+    function initFirebase() {
+      if (!firebaseConfig) {
+        console.warn("Firebase config not present. Skipping Firebase init.");
+        return;
+      }
+      try {
+        setLogLevel('error');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        (async () => {
+          try {
+            if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
+            else await signInAnonymously(auth);
+            console.log("Firebase auth OK", auth.currentUser?.uid);
+          } catch (e) {
+            console.error("Firebase auth failed:", e);
+          }
+        })();
+      } catch (e) {
+        console.error("Firebase init error:", e);
+      }
+    }
+
+    // Initialize settings from localStorage
+    function initializeSettings() {
+      const storedUrl = localStorage.getItem(APPS_SCRIPT_URL_KEY);
+      currentAppsScriptUrl = storedUrl || DEFAULT_URL;
+      const storedEvent = localStorage.getItem(EVENT_NAME_KEY);
+      currentEventName = storedEvent || DEFAULT_EVENT_NAME;
+
+      // show on form readonly field
+      const evInput = document.getElementById('event_name');
+      if (evInput) evInput.value = currentEventName;
+
+      console.log("Apps Script URL:", currentAppsScriptUrl);
+      console.log("Event name:", currentEventName);
+    }
+
+    // Modal toggle
+    function toggleUrlModal(show) {
+      const modal = document.getElementById('url-modal');
+      const pinForm = document.getElementById('pin-check-form');
+      const urlView = document.getElementById('url-view-only');
+      const pinInput = document.getElementById('pin-input');
+      const pinMsg = document.getElementById('pin-check-message');
+      if (show) {
+        pinForm.classList.remove('hidden');
+        urlView.classList.add('hidden');
+        pinInput.value = '';
+        pinMsg.classList.add('hidden');
+        modal.classList.remove('hidden');
+        setTimeout(()=>pinInput.focus(),50);
+      } else modal.classList.add('hidden');
+    }
+
+    function handlePinCheck(e) {
+      e.preventDefault();
+      const pin = document.getElementById('pin-input').value;
+      const pinMessage = document.getElementById('pin-check-message');
+      pinMessage.classList.remove('hidden');
+      if (pin === ACCESS_PIN) {
+        pinMessage.textContent = '✅ Akses Diberikan! (View Only)';
+        pinMessage.classList.remove('text-red-500');
+        pinMessage.classList.add('text-[#00E4FF]');
+        setTimeout(()=>{
+          document.getElementById('pin-check-form').classList.add('hidden');
+          document.getElementById('url-view-only').classList.remove('hidden');
+          document.getElementById('view-event-name').textContent = currentEventName;
+          document.getElementById('view-post-url').textContent = currentAppsScriptUrl;
+          document.getElementById('view-get-url').textContent = currentAppsScriptUrl;
+        }, 450);
+      } else {
+        pinMessage.textContent = '❌ PIN Akses Salah!';
+        pinMessage.classList.add('text-red-500');
+        document.getElementById('pin-input').value = '';
+        document.getElementById('pin-input').focus();
+      }
+    }
+
+    // small message helper
+    function showMessage(text, type='info', hideAfter=3600) {
+      const box = document.getElementById('message-box');
+      box.style.display = 'block';
+      box.textContent = text;
+      box.style.borderLeftColor = type === 'error' ? '#FF00FF' : '#00E4FF';
+      box.style.color = type === 'error' ? '#FF00FF' : '#E0E7FF';
+      if (hideAfter) setTimeout(()=> box.style.display='none', hideAfter);
+    }
+
+    // Toggle student fields based on type visitor
+    function toggleStudentFields() {
+      const typeSelect = document.getElementById('type_visitor');
+      if (!typeSelect) return;
+      const isStudent = typeSelect.value === 'Siswa';
+      const container = document.getElementById('student-fields');
+      const major = document.getElementById('major_interest_select');
+      const majorOther = document.getElementById('major_interest_other');
+      const priv = document.getElementById('private_univ_select');
+      const privOther = document.getElementById('private_univ_other');
+      const publicUniv = document.getElementById('public_univ');
+      const waParent = document.getElementById('wa_number_parent');
+
+      if (isStudent) {
+        container.classList.remove('hidden');
+        major?.setAttribute('required','');
+        priv?.setAttribute('required','');
+        publicUniv?.setAttribute('required','');
+        waParent?.setAttribute('required','');
+        if (major?.value==='Other') majorOther?.setAttribute('required','');
+        if (priv?.value==='Other') privOther?.setAttribute('required','');
+      } else {
+        container.classList.add('hidden');
+        major?.removeAttribute('required'); majorOther?.removeAttribute('required'); majorOther.value='';
+        priv?.removeAttribute('required'); privOther?.removeAttribute('required'); privOther.value='';
+        publicUniv?.removeAttribute('required'); publicUniv.value='';
+        waParent?.removeAttribute('required'); waParent.value='';
+        major?.setAttribute('name','Major_Interest');
+        priv?.setAttribute('name','Private_Univ');
+      }
+    }
+
+    // handle 'Other' toggles
+    function handleOtherToggle(selectId, inputId) {
+      const sel = document.getElementById(selectId);
+      const input = document.getElementById(inputId);
+      if (!sel || !input) return;
+      if (sel.value === 'Other') {
+        input.classList.remove('hidden');
+        input.setAttribute('required','');
+        sel.removeAttribute('name');
+      } else {
+        input.classList.add('hidden');
+        input.removeAttribute('required');
+        input.value = '';
+        // restore name
+        if (selectId==='major_interest_select') sel.setAttribute('name','Major_Interest');
+        if (selectId==='private_univ_select') sel.setAttribute('name','Private_Univ');
+      }
+      toggleStudentFields();
+    }
+
+    // Submit handler (POST to Apps Script)
+    async function handleSubmit(e) {
+      e.preventDefault();
+      if (!currentAppsScriptUrl) {
+        showMessage('❌ URL Apps Script belum diset. Gunakan tombol pengaturan.', 'error', 5000);
+        return;
+      }
+      const form = e.target;
+      const submitBtn = document.getElementById('submit-button');
+      const submitText = document.getElementById('submit-text');
+      const spinner = document.getElementById('loading-spinner');
+
+      submitBtn.disabled = true;
+      submitText.textContent = 'TRANSMITTING DATA...';
+      spinner.classList.remove('hidden');
+
+      // Collect data
+      const fd = new FormData(form);
+      const payload = {};
+      for (const [k, v] of fd.entries()) {
+        if (!v) continue;
+        payload[k] = v;
+      }
+
+      // remove student-only keys if Type_Visitor == Umum
+      if (payload.Type_Visitor === 'Umum') {
+        delete payload.Major_Interest;
+        delete payload.Private_Univ;
+        delete payload.Public_Univ;
+        delete payload.WA_Number_Parent;
+      }
+
+      // add event name
+      payload.EventName = currentEventName;
+
+      const MAX_RETRIES = 3;
+      let ok=false;
+      for (let attempt=0; attempt<MAX_RETRIES; attempt++) {
+        try {
+          showMessage(`ATTEMPT ${attempt+1}/${MAX_RETRIES}: SENDING...`, 'info', 1500);
+          const resp = await fetch(currentAppsScriptUrl, {
+            method:'POST',
+            mode:'cors',
+            body: JSON.stringify({ appId, timestamp: new Date().toISOString(), data: payload })
+          });
+          if (!resp.ok) {
+            const text = await resp.text().catch(()=>null);
+            throw new Error(`HTTP ${resp.status} - ${text || 'no body'}`);
+          }
+          const body = await resp.json().catch(()=>null);
+          if (body && body.result==='success') { ok=true; break; }
+          else throw new Error('Response tidak memberikan konfirmasi success: ' + JSON.stringify(body));
+        } catch (err) {
+          console.error('Submit attempt failed:', err);
+          if (attempt < MAX_RETRIES-1) await new Promise(r=>setTimeout(r, Math.pow(2,attempt)*1000));
+        }
+      }
+
+      submitBtn.disabled = false;
+      submitText.textContent = 'KIRIM DATA [ENTER]';
+      spinner.classList.add('hidden');
+
+      if (ok) {
+        showMessage('✅ DATA ACCEPTED. TRANSACTION COMPLETE.', 'info', 3000);
+        form.reset();
+        document.getElementById('type_visitor').value = 'Siswa';
+        toggleStudentFields();
+      } else {
+        showMessage('❌ TRANSMISSION FAILED. Periksa deployment Apps Script (Who has access: Anyone).', 'error', 7000);
+      }
+    }
+
+    // Leaderboard fetch & render
+    async function fetchLeaderboard() {
+      const status = document.getElementById('leaderboard-status');
+      const head = document.getElementById('leaderboard-head');
+      const body = document.getElementById('leaderboard-body');
+      status.textContent = '⏳ Mengambil data...';
+      head.innerHTML = '';
+      body.innerHTML = '';
+
+      try {
+        const resp = await fetch(currentAppsScriptUrl, { cache:'no-store' });
+        const json = await resp.json();
+
+        // If JSON contains a simple cell/value (like earlier case), show single value message
+        if (json && json.cell && (typeof json.value !== 'undefined')) {
+          status.textContent = `🔎 ${json.cell}: ${json.value}`;
+          return;
+        }
+
+        if (!json || json.result !== 'success' || !Array.isArray(json.rows)) {
+          status.textContent = '⚠️ Struktur response tidak sesuai atau tidak ada data leaderboard.';
+          console.error('Leaderboard JSON unexpected:', json);
+          return;
+        }
+
+        // Filter out rows where every cell is empty or #N/A
+        const rows = json.rows.filter(r => {
+          return Object.values(r).some(v => (v !== '' && v !== null && v !== undefined && !(typeof v === 'string' && v.trim()==='#N/A')));
+        });
+
+        if (rows.length === 0) {
+          status.textContent = '⚠️ Tidak ada entri valid di leaderboard.';
+          return;
+        }
+
+        // Build header from keys (keep consistent ordering if Rank, Nama, Score, etc.)
+        const keys = Object.keys(rows[0]);
+        const trHead = document.createElement('tr');
+        keys.forEach(k => {
+          const th = document.createElement('th');
+          th.textContent = k;
+          th.className = 'px-3 py-2 text-xs text-white/70 text-left';
+          trHead.appendChild(th);
+        });
+        head.appendChild(trHead);
+
+        // Render rows
+        rows.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-white/3';
+          keys.forEach(k => {
+            const td = document.createElement('td');
+            td.textContent = row[k] ?? '';
+            td.className = 'px-3 py-2 text-sm';
+            tr.appendChild(td);
+          });
+          body.appendChild(tr);
+        });
+
+        status.textContent = `✅ Data berhasil dimuat (${rows.length} entri).`;
+
+      } catch (err) {
+        console.error('Fetch leaderboard error:', err);
+        status.textContent = '❌ Gagal mengambil data leaderboard. Periksa URL / deployment.';
+      }
+    }
+
+    // Navigation handling
+    function changeView(viewId) {
+      const formView = document.getElementById('form-view');
+      const boardView = document.getElementById('leaderboard-view');
+      const navForm = document.getElementById('nav-form');
+      const navBoard = document.getElementById('nav-leaderboard');
+
+      formView.classList.add('hidden');
+      boardView.classList.add('hidden');
+      navForm.classList.remove('active-nav-button');
+      navBoard.classList.remove('active-nav-button');
+
+      if (viewId === 'form-view') {
+        formView.classList.remove('hidden');
+        navForm.classList.add('active-nav-button');
+        toggleStudentFields();
+      } else if (viewId === 'leaderboard-view') {
+        boardView.classList.remove('hidden');
+        navBoard.classList.add('active-nav-button');
+      }
+    }
+
+    // Setup events on window load
+    window.onload = function() {
+      initFirebase();
+      initializeSettings();
+
+      // elements
+      const form = document.getElementById('visitor-form');
+      const navForm = document.getElementById('nav-form');
+      const navBoard = document.getElementById('nav-leaderboard');
+      const settingsButton = document.getElementById('settings-button');
+      const pinForm = document.getElementById('pin-check-form');
+      const cancelPin = document.getElementById('cancel-pin-button');
+      const closeUrlView = document.getElementById('close-url-view-button');
+      const fetchBtn = document.getElementById('fetch-leaderboard');
+
+      if (form) form.addEventListener('submit', handleSubmit);
+      if (navForm) navForm.addEventListener('click', ()=>changeView('form-view'));
+      if (navBoard) navBoard.addEventListener('click', ()=>changeView('leaderboard-view'));
+      if (settingsButton) settingsButton.addEventListener('click', ()=>toggleUrlModal(true));
+      if (pinForm) pinForm.addEventListener('submit', handlePinCheck);
+      if (cancelPin) cancelPin.addEventListener('click', ()=>toggleUrlModal(false));
+      if (closeUrlView) closeUrlView.addEventListener('click', ()=>toggleUrlModal(false));
+      if (fetchBtn) fetchBtn.addEventListener('click', fetchLeaderboard);
+
+      // toggles
+      document.getElementById('type_visitor')?.addEventListener('change', toggleStudentFields);
+      document.getElementById('major_interest_select')?.addEventListener('change', ()=>handleOtherToggle('major_interest_select','major_interest_other'));
+      document.getElementById('private_univ_select')?.addEventListener('change', ()=>handleOtherToggle('private_univ_select','private_univ_other'));
+
+      // initial view
+      changeView('form-view');
+    };
+  </script>
+</body>
+</html>
