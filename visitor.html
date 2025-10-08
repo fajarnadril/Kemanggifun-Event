@@ -249,17 +249,23 @@
 
   // --- Settings Initialization ---
   function initializeSettings() {
+    const params = new URLSearchParams(window.location.search);
+    const eventParam = params.get("event"); // ambil ?event= dari URL
+  
     const storedUrl = localStorage.getItem(APPS_SCRIPT_URL_KEY);
     currentAppsScriptUrl = storedUrl || DEFAULT_URL;
+  
+    // kalau URL punya ?event=..., pakai itu. kalau tidak, pakai dari localStorage atau default.
     const storedEvent = localStorage.getItem(EVENT_NAME_KEY);
-    currentEventName = storedEvent || DEFAULT_EVENT_NAME;
-
+    currentEventName = eventParam || storedEvent || DEFAULT_EVENT_NAME;
+  
     const evInput = document.getElementById('event_name');
     if (evInput) evInput.value = currentEventName;
-
+  
     console.log("Apps Script URL:", currentAppsScriptUrl);
     console.log("Event name:", currentEventName);
   }
+
 
   // --- Modal (PIN + URL View) ---
   function toggleUrlModal(show) {
