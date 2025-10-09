@@ -64,26 +64,48 @@
       cursor: not-allowed !important;
       opacity: 0.7;
     }
+    /* Style for the event_name and tenant_name as text */
+    .text-display {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #00B8D9;
+    }
+    .neon-text {
+      font-size: 3rem; /* Ukuran font lebih besar */
+      color: #00B8D9; /* Cyan Neon */
+      text-shadow: 
+        0 0 5px #00B8D9, 
+        0 0 10px #00B8D9, 
+        0 0 15px #00B8D9, 
+        0 0 20px #00B8D9, 
+        0 0 30px #00B8D9, 
+        0 0 40px #00B8D9; /* Efek cahaya neon */
+    }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h2 class="text-xl font-bold text-center text-cyan-400 mb-6">Tenant Add Score</h2>
+    
+  <h1 class="text-xl font-bold text-left text-cyan-400 mb-6 neon-text">
+    Welcome to <span id="event_name">TechManDay</span> Event!
+  </h1>
+    <!-- Display as Text instead of Form -->
+    <p class="text-display text-left text-md" id="event_name_text">Thanks for visit <span id="tenant_name">Tenant</span> Booth!</p>
+
+
     <form id="scoreForm" class="space-y-4" autocomplete="off">
-      <div>
-        <label class="block text-sm font-semibold text-cyan-400">Nama Acara</label>
-        <input type="text" id="event_name" class="w-full p-2 rounded bg-[#081B34] border border-cyan-700" readonly />
-      </div>
-      <div>
-        <label class="block text-sm font-semibold text-cyan-400">Nama Tenant</label>
-        <input type="text" id="tenant_name" class="w-full p-2 rounded bg-[#081B34] border border-cyan-700" readonly />
-      </div>
+      <!-- Hidden inputs for form submission -->
+      <input type="hidden" id="event_name_input" name="event_name" />
+      <input type="hidden" id="tenant_name_input" name="tenant_name" />
+      
       <div class="relative">
         <label class="block text-sm font-semibold text-cyan-400">Email Pengunjung</label>
+        <p class="text-left text-sm text-cyan-400 mb-4">Typing your registered email and Add Score Now!</p>
         <input type="text" id="email_input" class="w-full p-2 rounded bg-[#081B34] border border-cyan-700" placeholder="Ketik email..." />
         <div id="email_suggestions" class="suggestions hidden"></div>
       </div>
+      
       <button type="submit" id="addScoreBtn" class="bg-cyan-400 text-black font-bold rounded px-4 py-2 w-full">➕ Add Score</button>
     </form>
   </div>
@@ -147,8 +169,8 @@
 
       const btn = document.getElementById('addScoreBtn');
       const email = document.getElementById('email_input').value.trim().toLowerCase();
-      const tenant = document.getElementById('tenant_name').value;
-      const eventName = document.getElementById('event_name').value;
+      const tenant = document.getElementById('tenant_name').textContent;
+      const eventName = document.getElementById('event_name').textContent;
 
       if (!email) return showPopup('❌ Email harus diisi.', true);
       if (!allEmails.includes(email)) return showPopup('❌ Email tidak ditemukan di daftar.', true);
@@ -185,8 +207,10 @@
 
     window.onload = async () => {
       const params = new URLSearchParams(location.search);
-      document.getElementById('event_name').value = params.get('event') || 'TechManDay';
-      document.getElementById('tenant_name').value = params.get('tenant') || 'GAT';
+      document.getElementById('event_name').textContent = params.get('event') || 'TechManDay';
+      document.getElementById('tenant_name').textContent = params.get('tenant') || 'GAT';
+      document.getElementById('event_name_input').value = params.get('event') || 'TechManDay';
+      document.getElementById('tenant_name_input').value = params.get('tenant') || 'GAT';
       await fetchEmails();
       setupAutocomplete();
     };
