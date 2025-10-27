@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kemanggifun — Leaderboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #080A1A; color: #E0E7FF; display:flex; justify-content:center; align-items:center; padding:20px; min-height:100vh; }
+    .neon-blue { color: #00E4FF; }
+    .bg-neon-blue { background-color: #00B8D9; }
+    .cyberpunk-card { background: #0D162A; border: 1px solid #081B34; box-shadow: 0 0 30px rgba(0,228,255,0.12), 0 0 10px rgba(255,0,255,0.06); border-radius:12px; width:100%; max-width:820px; }
+    .neon-button { padding:10px 15px; border-radius:6px; font-weight:700; text-transform:uppercase; letter-spacing:1px; transition:all .22s; cursor:pointer; box-shadow:0 0 5px rgba(0,228,255,0.45); background:#00B8D9; color:#0D162A; border:none; }
+    .neon-button:hover:not(:disabled) { background:#00E4FF; box-shadow:0 0 15px rgba(0,228,255,0.8), 0 0 5px rgba(255,0,255,0.35); transform:translateY(-1px) }
+    .table-scroll { max-height:420px; overflow:auto; }
+    /* small spinner */
+    .spinner { border:2px solid rgba(255,255,255,0.18); border-top-color:#FF00FF; border-radius:999px; width:18px; height:18px; animation:spin 1s linear infinite; display:inline-block; margin-right:8px; }
+    @keyframes spin { to { transform:rotate(360deg) } }
+    /* message box */
+    #message-box { position:fixed; top:18px; left:50%; transform:translateX(-50%); background:#0D162A; border-left:4px solid #00E4FF; padding:10px 14px; border-radius:6px; z-index:60; display:none; }
+  </style>
+</head>
+<body class="selection:bg-[#FF00FF] selection:text-[#0D162A]">
+
+  <div id="message-box" role="status"></div>
+
+  <div class="cyberpunk-card p-6 sm:p-8">
+    <!-- NAV -->
+    <div class="flex justify-between items-center mb-6 border-b border-[#00E4FF]/30 pb-3">
+      <div class="flex gap-2">
+        <button id="nav-leaderboard" class="neon-button text-xs py-2 px-3 active-nav-button">LEADERBOARD</button>
+      </div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-extrabold neon-blue uppercase tracking-wider">KEMANGGIFUN</h1>
+      </div>
+    </div>
+
+    <!-- CONTENT: Leaderboard View -->
+    <div id="leaderboard-view">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold neon-blue uppercase">Leaderboard</h3>
+          <p class="text-xs text-white/70">Klik tombol untuk mengambil data leaderboard dari Google Sheet</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="fetch-leaderboard" class="neon-button">🔄 Ambil Data Terbaru</button>
+        </div>
+      </div>
+
+      <div class="bg-[#071025] border border-[#081B34] rounded-md p-3 table-scroll">
+        <table id="leaderboard-table" class="w-full text-sm">
+          <thead id="leaderboard-head" class="text-xs text-white/80"></thead>
+          <tbody id="leaderboard-body" class="divide-y"></tbody>
+        </table>
+      </div>
+
+      <p id="leaderboard-status" class="mt-3 text-sm text-white/70"></p>
+    </div>
+  </div>
+
+<script type="module">
+  // --- Config keys & defaults ---
+  const APPS_SCRIPT_URL_KEY = 'kemanggifun_apps_script_url';
+  const EVENT_NAME_KEY = 'kemanggifun_event_name';
+  const DEFAULT_URL = "https://script.google.com/macros/s/AKfycbxKKJ_RqQggd-WmJFuC-5cPrboeUS04xit4bGwz5RFeZ4aBCniCTIQwYCOH7SWX0s_wNw/exec";
+  const DEFAULT_EVENT_NAME = "TechManDay";
+
+  // --- Cooldown (10 menit) untuk tombol Ambil Data Terbaru ---
+  const FETCH_COOLDOWN_MS = 1 * 60 * 1000; // 10 menit
+  const LEADERBOARD_COOLDOWN_KEY = 'kemanggifun_leaderboard_cooldown_until';
+  const FETCH_BUTTON_DEFAULT_TEXT = '🔄 Ambil Data Terbaru';
+
+  let currentAppsScriptUrl = DEFAULT_URL;
+  let currentEventName = DEFAULT_EVENT_NAME;
+  let cooldownTimerId = null;
+
+  // --- UI Helper ---
+  function showMessage(text, type = 'info', hideAfter = 3600) {
+    const box = document.getElementById('message-box');
+    box.style.display = 'block';
+    box.textContent = text;
+    box.style.borderLeftColor = type === 'error' ? '#FF00FF' : '#00E4FF';
+    box.style.color = type === 'error' ? '#FF00FF' : '#E0E7FF';
+    if (hideAfter) setTimeout(() => box.style.display = 'none', hideAfter);
+  }
+
+  // --- Util Cooldown ---
+  function getCooldownRemainingMs() {
+    const until = Number(localStorage.getItem(LEADERBOARD_COOLDOWN_KEY) || 0);
+    const now = Date.now();
+    return Math.max(0, until - now);
+  }
+
+  function setCooldownUntil(msFromNow) {
+    const until = Date.now() + msFromNow;
+    localStorage.setItem(LEADERBOARD_COOLDOWN_KEY, String(until));
+    return until;
+  }
+
+  function clearCooldownTimer() {
+    if (cooldownTimerId) {
+      clearInterval(cooldownTimerId);
+      cooldownTimerId = null;
+    }
+  }
+
+  function formatMMSS(ms) {
+    const totalSec = Math.ceil(ms / 1000);
+    const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+    const s = (totalSec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function applyFetchCooldownUI() {
+    const btn = document.getElementById('fetch-leaderboard');
+    if (!btn) return;
+    clearCooldownTimer();
+
+    const remain = getCooldownRemainingMs();
+    if (remain > 0) {
+      btn.disabled = true;
+      btn.textContent = `⏳ Cooldown ${formatMMSS(remain)}`;
+      cooldownTimerId = setInterval(() => {
+        const r = getCooldownRemainingMs();
+        if (r <= 0) {
+          clearCooldownTimer();
+          btn.disabled = false;
+          btn.textContent = FETCH_BUTTON_DEFAULT_TEXT;
+        } else {
+          btn.textContent = `⏳ Cooldown ${formatMMSS(r)}`;
+        }
+      }, 1000);
+    } else {
+      btn.disabled = false;
+      btn.textContent = FETCH_BUTTON_DEFAULT_TEXT;
+    }
+  }
+
+  function startFetchCooldown() {
+    setCooldownUntil(FETCH_COOLDOWN_MS);
+    applyFetchCooldownUI();
+  }
+
+  // --- Fetch Leaderboard (UI render) ---
+  async function fetchLeaderboard() {
+    const status = document.getElementById('leaderboard-status');
+    const head = document.getElementById('leaderboard-head');
+    const body = document.getElementById('leaderboard-body');
+
+    status.textContent = '⏳ Mengambil data...';
+    head.innerHTML = '';
+    body.innerHTML = '';
+
+    try {
+      const resp = await fetch(currentAppsScriptUrl, { cache: 'no-store' });
+      const json = await resp.json();
+
+      // Mode single-cell (opsional)
+      if (json && json.cell && (typeof json.value !== 'undefined')) {
+        status.textContent = `🔎 ${json.cell}: ${json.value}`;
+        return;
+      }
+
+      if (!json || json.result !== 'success' || !Array.isArray(json.rows)) {
+        status.textContent = '⚠️ Struktur response tidak sesuai atau tidak ada data leaderboard.';
+        console.error('Leaderboard JSON unexpected:', json);
+        return;
+      }
+
+      const rows = json.rows.filter(r =>
+        Object.values(r).some(v => (v !== '' && v !== null && v !== undefined && !(typeof v === 'string' && v.trim() === '#N/A'))));
+        
+      if (rows.length === 0) {
+        status.textContent = '⚠️ Tidak ada entri valid di leaderboard.';
+        return;
+      }
+
+      const keys = Object.keys(rows[0]);
+      const trHead = document.createElement('tr');
+      keys.forEach(k => {
+        const th = document.createElement('th');
+        th.textContent = k;
+        th.className = 'px-3 py-2 text-xs text-white/70 text-left';
+        trHead.appendChild(th);
+      });
+      head.appendChild(trHead);
+
+      rows.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-white/3';
+        keys.forEach(k => {
+          const td = document.createElement('td');
+          td.textContent = row[k] ?? '';
+          td.className = 'px-3 py-2 text-sm';
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+
+      status.textContent = `✅ Data berhasil dimuat (${rows.length} entri).`;
+    } catch (err) {
+      console.error('Fetch leaderboard error:', err);
+      status.textContent = '❌ Gagal mengambil data leaderboard. Periksa URL / deployment.';
+    }
+  }
+
+  // --- Klik tombol: enforce cooldown 10 menit ---
+  function onFetchClick() {
+    const remain = getCooldownRemainingMs();
+    if (remain > 0) {
+      showMessage(`⏳ Masih cooldown ${formatMMSS(remain)} sebelum bisa ambil data lagi.`, 'info', 4000);
+      applyFetchCooldownUI();
+      return;
+    }
+    // Mulai cooldown lebih dulu (apapun hasil fetch)
+    startFetchCooldown();
+    // Lanjut ambil data
+    fetchLeaderboard();
+  }
+
+  // --- On Load Setup ---
+  window.onload = function () {
+    const fetchBtn = document.getElementById('fetch-leaderboard');
+    if (fetchBtn) fetchBtn.addEventListener('click', onFetchClick);
+
+    // Sinkronisasi state cooldown saat pertama load
+    applyFetchCooldownUI();
+  };
+</script>
+
+</body>
+</html>
