@@ -81,27 +81,18 @@
         0 0 30px #00B8D9, 
         0 0 40px #00B8D9; /* Efek cahaya neon */
     }
-    /* Style for leaderboard link */
-    .leaderboard-link {
-      font-size: 0.875rem;
-      color: #00B8D9;
-      text-decoration: underline;
-      cursor: pointer;
-      display: block;
-      margin-top: 10px;
-      text-align: center;
-    }
   </style>
 </head>
 <body>
 
   <div class="card">
     
-    <h1 class="text-xl font-bold text-left text-cyan-400 mb-6 neon-text">
-      Welcome to <span id="event_name">TechManDay</span> Event!
-    </h1>
+  <h1 class="text-xl font-bold text-left text-cyan-400 mb-6 neon-text">
+    Welcome to <span id="event_name">TechManDay</span> Event!
+  </h1>
     <!-- Display as Text instead of Form -->
     <p class="text-display text-left text-md" id="event_name_text">Thanks for visit <span id="tenant_name">Tenant</span> Booth!</p>
+
 
     <form id="scoreForm" class="space-y-4" autocomplete="off">
       <!-- Hidden inputs for form submission -->
@@ -117,8 +108,6 @@
       
       <button type="submit" id="addScoreBtn" class="bg-cyan-400 text-black font-bold rounded px-4 py-2 w-full">➕ Add Score</button>
     </form>
-    <!-- Leaderboard Link Button -->
-    <a href="https://fajarnadril.github.io/Kemanggifun-Event/leaderboard.html" class="leaderboard-link" target="_blank">Lihat Leaderboard</a>
   </div>
 
   <div id="popup" class="popup"><span id="popup-message"></span></div>
